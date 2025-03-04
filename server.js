@@ -42,7 +42,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ADMIN_PASSWORD = 'ContiTechOrg$%GFEH&*31HSc88JCEBSKkEcesf';
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`; // 添加基础URL配置
+const BASE_URL = process.env.BASE_URL || 'http://ec2-18-119-132-144.us-east-2.compute.amazonaws.com';
 
 // 配置邮件发送
 const transporter = nodemailer.createTransport({
