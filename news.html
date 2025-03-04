@@ -131,10 +131,18 @@
         <div class="container">
             <h2>保持更新</h2>
             <p>订阅我们的通讯以获取最新动态和见解</p>
-            <form class="newsletter-form">
-                <input type="email" placeholder="输入您的邮箱" required>
-                <button type="submit" class="btn primary">订阅</button>
+            <div id="message" class="hidden"></div>
+            <form id="subscriptionForm" class="newsletter-form">
+                <input type="email" id="emailInput" placeholder="输入您的邮箱" required>
+                <button type="submit" class="btn primary" id="subscribeBtn">订阅</button>
             </form>
+            <div id="unsubscribeSection" class="hidden">
+                <p>已经订阅？</p>
+                <form id="unsubscribeForm" class="newsletter-form">
+                    <input type="email" id="unsubEmailInput" placeholder="输入您的邮箱" required>
+                    <button type="submit" class="btn secondary">取消订阅</button>
+                </form>
+            </div>
         </div>
     </section>
 
@@ -162,6 +170,126 @@
         </div>
     </footer>
 
-    <script src="main.js"></script>
+    <style>
+    .hidden {
+        display: none;
+    }
+    #message {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+    }
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .newsletter-section {
+        padding: 40px 0;
+        background-color: #f8f9fa;
+    }
+    .newsletter-form {
+        display: flex;
+        gap: 10px;
+        max-width: 500px;
+        margin: 20px auto;
+    }
+    .newsletter-form input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    #unsubscribeSection {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const subscriptionForm = document.getElementById('subscriptionForm');
+        const unsubscribeForm = document.getElementById('unsubscribeForm');
+        const messageDiv = document.getElementById('message');
+        const unsubscribeSection = document.getElementById('unsubscribeSection');
+
+        // 显示消息函数
+        function showMessage(message, type) {
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 订阅处理
+        subscriptionForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+
+            try {
+                const response = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('订阅成功！感谢您的订阅。', 'success');
+                    subscriptionForm.reset();
+                } else {
+                    showMessage(data.error || '订阅失败，请稍后重试。', 'error');
+                }
+            } catch (error) {
+                showMessage('订阅失败，请稍后重试。', 'error');
+            }
+        });
+
+        // 取消订阅处理
+        unsubscribeForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('unsubEmailInput').value;
+
+            try {
+                const response = await fetch('/api/unsubscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('已成功取消订阅。', 'success');
+                    unsubscribeForm.reset();
+                } else {
+                    showMessage(data.error || '取消订阅失败，请稍后重试。', 'error');
+                }
+            } catch (error) {
+                showMessage('取消订阅失败，请稍后重试。', 'error');
+            }
+        });
+
+        // 显示取消订阅部分的切换按钮
+        const toggleUnsubscribe = document.createElement('button');
+        toggleUnsubscribe.textContent = '已经订阅？点击这里取消订阅';
+        toggleUnsubscribe.className = 'btn secondary';
+        toggleUnsubscribe.style.marginTop = '10px';
+        toggleUnsubscribe.onclick = function(e) {
+            e.preventDefault();
+            unsubscribeSection.classList.toggle('hidden');
+        };
+        subscriptionForm.after(toggleUnsubscribe);
+    });
+    </script>
 </body>
 </html> 

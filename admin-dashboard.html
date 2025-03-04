@@ -145,11 +145,23 @@
     </div>
 
     <script>
+        // 显示消息
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
         // 检查登录状态
         function checkAuth() {
             const token = localStorage.getItem('adminToken');
             if (!token) {
                 window.location.href = 'admin-login.html';
+                return null;
             }
             return token;
         }
@@ -161,16 +173,42 @@
             if (!token) return;
 
             try {
+                // 创建 FormData 并打印内容
                 const formData = new FormData();
-                formData.append('title', document.getElementById('title').value);
-                formData.append('content', document.getElementById('content').value);
-                
+                const title = document.getElementById('title').value;
+                const content = document.getElementById('content').value;
                 const imageInput = document.getElementById('image');
-                if (imageInput && imageInput.files[0]) {
-                    formData.append('image', imageInput.files[0]);
+                
+                const requestData = {
+                    title: title,
+                    content: content,
+                    hasImage: imageInput.files.length > 0
+                };
+                console.log('准备发送的数据:', JSON.stringify(requestData, null, 2));
+
+                formData.append('title', title);
+                formData.append('content', content);
+                
+                if (imageInput.files[0]) {
+                    const imageFile = imageInput.files[0];
+                    const imageInfo = {
+                        name: imageFile.name,
+                        type: imageFile.type,
+                        size: (imageFile.size / 1024).toFixed(2) + ' KB'
+                    };
+                    console.log('图片信息:', JSON.stringify(imageInfo, null, 2));
+                    formData.append('image', imageFile);
                 }
 
-                console.log('正在发送请求...');
+                // 检查 FormData 内容
+                console.log('FormData 内容:');
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+                }
+
+                console.log('开始发送请求...');
+                console.log('使用的token:', token);
+                
                 const response = await fetch('/api/admin/news', {
                     method: 'POST',
                     headers: {
@@ -179,36 +217,38 @@
                     body: formData
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: '服务器错误' }));
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                console.log('服务器响应状态:', response.status);
+                console.log('响应头:', Object.fromEntries(response.headers.entries()));
+                
+                const responseText = await response.text();
+                console.log('服务器响应内容:', responseText);
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('解析响应JSON失败:', e);
+                    showMessage('服务器返回了非JSON格式的响应: ' + responseText.substring(0, 100), 'error');
+                    return;
                 }
 
-                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || `服务器错误 (${response.status}): ${responseText}`);
+                }
+
                 if (result.success) {
                     showMessage('发布成功！', 'success');
-                    document.getElementById('newsForm').reset();
+                    this.reset();
                     document.getElementById('imagePreview').innerHTML = '';
                     loadNewsList();
                 } else {
-                    throw new Error(result.error || '发布失败');
+                    throw new Error(result.error || '发布失败，但未返回具体错误信息');
                 }
             } catch (error) {
                 console.error('发布错误:', error);
-                showMessage(`发布失败: ${error.message}`, 'error');
+                showMessage('发布失败: ' + error.message, 'error');
             }
         });
-
-        // 显示消息提示
-        function showMessage(message, type = 'info') {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.className = `message ${type}`;
-            messageDiv.classList.remove('hidden');
-            setTimeout(() => {
-                messageDiv.classList.add('hidden');
-            }, 3000);
-        }
 
         // 图片预览
         function previewImage(event) {
@@ -217,7 +257,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.getElementById('imagePreview');
-                    preview.innerHTML = `<img src="${e.target.result}" alt="预览图片" style="max-width: 200px;">`;
+                    preview.innerHTML = `<img src="${e.target.result}" alt="预览图片">`;
                 }
                 reader.readAsDataURL(file);
             }
@@ -234,6 +274,11 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const news = await response.json();
                 const newsListElement = document.getElementById('newsList');
                 newsListElement.innerHTML = news.map(item => `
@@ -248,20 +293,22 @@
                 `).join('');
             } catch (error) {
                 console.error('加载新闻列表失败:', error);
-                alert('加载新闻列表失败');
+                showMessage('加载新闻列表失败: ' + error.message, 'error');
             }
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
         }
 
         // 页面加载时检查认证并加载新闻列表
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            loadNewsList();
-        });
-
-        // 退出登录
-        document.getElementById('logoutButton').addEventListener('click', function() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'admin-login.html';
+            const token = checkAuth();
+            if (token) {
+                loadNewsList();
+            }
         });
     </script>
 </body>

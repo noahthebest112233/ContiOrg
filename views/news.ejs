@@ -6,6 +6,86 @@
     <title>新闻 - CONTI</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .news-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .news-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .news-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .subscription-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .subscription-form input[type="email"] {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .subscription-form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .subscription-form button:hover {
+            background-color: #45a049;
+        }
+        .unsubscribe-button {
+            background-color: #f44336 !important;
+            margin-left: 10px;
+        }
+        .unsubscribe-button:hover {
+            background-color: #da190b !important;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        .date {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -71,10 +151,15 @@
         <div class="container">
             <h2>保持更新</h2>
             <p>订阅我们的通讯以获取最新动态和见解</p>
-            <form class="newsletter-form">
-                <input type="email" placeholder="输入您的邮箱" required>
-                <button type="submit" class="btn primary">订阅</button>
-            </form>
+            <div class="subscription-form">
+                <h2>订阅 CONTI 新闻更新</h2>
+                <div id="message" class="message"></div>
+                <form id="subscriptionForm" onsubmit="return handleSubscription(event)">
+                    <input type="email" id="email" name="email" placeholder="请输入您的邮箱地址" required>
+                    <button type="submit" id="subscribeBtn">订阅</button>
+                    <button type="button" id="unsubscribeBtn" class="unsubscribe-button" onclick="handleUnsubscribe()">取消订阅</button>
+                </form>
+            </div>
         </div>
     </section>
 
@@ -103,5 +188,93 @@
     </footer>
 
     <script src="main.js"></script>
+    <script>
+        async function handleSubscription(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const messageDiv = document.getElementById('message');
+            const subscribeBtn = document.getElementById('subscribeBtn');
+            
+            try {
+                subscribeBtn.disabled = true;
+                const response = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                messageDiv.style.display = 'block';
+                if (response.ok) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = '订阅成功！欢迎邮件已发送到您的邮箱。';
+                    document.getElementById('email').value = '';
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.error || '订阅失败，请稍后重试。';
+                }
+            } catch (error) {
+                messageDiv.style.display = 'block';
+                messageDiv.className = 'message error';
+                messageDiv.textContent = '订阅失败，请检查网络连接。';
+            } finally {
+                subscribeBtn.disabled = false;
+                // 5秒后自动隐藏消息
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+            return false;
+        }
+
+        async function handleUnsubscribe() {
+            const email = document.getElementById('email').value;
+            const messageDiv = document.getElementById('message');
+            const unsubscribeBtn = document.getElementById('unsubscribeBtn');
+            
+            if (!email) {
+                messageDiv.style.display = 'block';
+                messageDiv.className = 'message error';
+                messageDiv.textContent = '请输入要取消订阅的邮箱地址';
+                return;
+            }
+
+            try {
+                unsubscribeBtn.disabled = true;
+                const response = await fetch('/api/unsubscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                messageDiv.style.display = 'block';
+                if (response.ok) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = '已成功取消订阅。';
+                    document.getElementById('email').value = '';
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.error || '取消订阅失败，请稍后重试。';
+                }
+            } catch (error) {
+                messageDiv.style.display = 'block';
+                messageDiv.className = 'message error';
+                messageDiv.textContent = '取消订阅失败，请检查网络连接。';
+            } finally {
+                unsubscribeBtn.disabled = false;
+                // 5秒后自动隐藏消息
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
 </body>
 </html> 
