@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入我们 - CONTI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">CONTI</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="about.html">关于我们</a></li>
+                <li><a href="technology.html">技术</a></li>
+                <li><a href="projects.html">项目</a></li>
+                <li><a href="news.html">新闻</a></li>
+                <li><a href="join.html" class="active">加入我们</a></li>
+                <li><a href="contact.html">联系我们</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>加入CONTI</h1>
+            <p>成为我们技术创新社区的一员</p>
+        </div>
+    </section>
+
+    <!-- Why Join Us -->
+    <section class="why-join-section">
+        <div class="container">
+            <h2>为什么加入CONTI？</h2>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>创新</h3>
+                    <p>参与前沿技术项目和研究</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-users"></i>
+                    <h3>社区</h3>
+                    <p>与志同道合的技术爱好者交流</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>学习</h3>
+                    <p>获取工作坊、培训和指导机会</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-hands-helping"></i>
+                    <h3>影响力</h3>
+                    <p>为有意义的技术解决方案做出贡献</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Member Roles -->
+    <section class="roles-section">
+        <div class="container">
+            <h2>可选职位</h2>
+            <div class="roles-grid">
+                <div class="role-card">
+                    <div class="role-header">
+                        <h3>研究成员</h3>
+                        <span class="role-type">技术研究</span>
+                    </div>
+                    <p>加入我们的研究团队，探索前沿人工智能和技术解决方案。</p>
+                    <ul class="role-activities">
+                        <li>参与研究项目</li>
+                        <li>合作撰写技术论文</li>
+                        <li>参加研究会议</li>
+                    </ul>
+                    <a href="#join-form" class="btn primary">立即申请</a>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-header">
+                        <h3>开发成员</h3>
+                        <span class="role-type">项目开发</span>
+                    </div>
+                    <p>帮助构建和实现创新技术解决方案。</p>
+                    <ul class="role-activities">
+                        <li>参与实际项目</li>
+                        <li>开发软件解决方案</li>
+                        <li>参与代码审查</li>
+                    </ul>
+                    <a href="#join-form" class="btn primary">立即申请</a>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-header">
+                        <h3>普通成员</h3>
+                        <span class="role-type">社区</span>
+                    </div>
+                    <p>成为我们技术社区的一员，为各种活动做出贡献。</p>
+                    <ul class="role-activities">
+                        <li>参加工作坊和活动</li>
+                        <li>参与讨论</li>
+                        <li>支持社区项目</li>
+                    </ul>
+                    <a href="#join-form" class="btn primary">立即申请</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Join Form -->
+    <section id="join-form" class="join-form-section">
+        <div class="container">
+            <h2>成为会员</h2>
+            <form class="join-form">
+                <div class="form-group">
+                    <label for="role">意向职位</label>
+                    <select id="role" required>
+                        <option value="">请选择职位</option>
+                        <option value="research">研究成员</option>
+                        <option value="development">开发成员</option>
+                        <option value="general">普通成员</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="name">姓名</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="background">背景/经验</label>
+                    <textarea id="background" rows="4" placeholder="请介绍您的背景以及为什么想加入CONTI" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="interests">兴趣领域</label>
+                    <textarea id="interests" rows="3" placeholder="您最感兴趣的技术领域是什么？" required></textarea>
+                </div>
+                <button type="submit" class="btn primary">提交申请</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Contact Us</h4>
+                    <p><i class="fas fa-envelope"></i> Email: ContiTechOrg@gmail.com</p>
+                    <p><i class="fas fa-phone"></i> Phone: 412-654-0901</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="https://www.linkedin.com/company/106237409/admin/dashboard/" title="LinkedIn" target="_blank"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://www.instagram.com/contitechorg/" title="Instagram" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 CONTI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

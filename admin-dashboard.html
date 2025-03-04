@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员仪表板 - CONTI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .news-list {
+            margin-top: 30px;
+        }
+        .news-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .news-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .news-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        #message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .image-preview {
+            max-width: 300px;
+            margin: 10px 0;
+        }
+        .image-preview img {
+            max-width: 100%;
+            height: auto;
+        }
+        .current-image {
+            margin: 10px 0;
+        }
+        .current-image img {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>新闻管理</h1>
+            <button class="btn btn-danger" onclick="logout()">退出登录</button>
+        </div>
+
+        <div id="message" class="hidden"></div>
+
+        <form id="newsForm" enctype="multipart/form-data">
+            <input type="hidden" id="editingId" value="">
+            <input type="hidden" id="currentImage" value="">
+            <div class="form-group">
+                <label for="title">标题</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="form-group">
+                <label for="content">内容</label>
+                <textarea id="content" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image">图片</label>
+                <input type="file" id="image" accept="image/*" onchange="previewImage(event)">
+                <div id="imagePreview" class="image-preview"></div>
+                <div id="currentImageDisplay" class="current-image"></div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="submitBtn">发布新闻</button>
+            <button type="button" class="btn btn-warning hidden" id="cancelBtn" onclick="cancelEdit()">取消编辑</button>
+        </form>
+
+        <div class="news-list" id="newsList">
+            <!-- 新闻列表将通过 JavaScript 动态加载 -->
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'admin-login.html';
+            }
+            return token;
+        }
+
+        // 处理表单提交
+        document.getElementById('newsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = checkAuth();
+            if (!token) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('title', document.getElementById('title').value);
+                formData.append('content', document.getElementById('content').value);
+                
+                const imageInput = document.getElementById('image');
+                if (imageInput && imageInput.files[0]) {
+                    formData.append('image', imageInput.files[0]);
+                }
+
+                console.log('正在发送请求...');
+                const response = await fetch('/api/admin/news', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: '服务器错误' }));
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('发布成功！', 'success');
+                    document.getElementById('newsForm').reset();
+                    document.getElementById('imagePreview').innerHTML = '';
+                    loadNewsList();
+                } else {
+                    throw new Error(result.error || '发布失败');
+                }
+            } catch (error) {
+                console.error('发布错误:', error);
+                showMessage(`发布失败: ${error.message}`, 'error');
+            }
+        });
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 图片预览
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.innerHTML = `<img src="${e.target.result}" alt="预览图片" style="max-width: 200px;">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 加载新闻列表
+        async function loadNewsList() {
+            const token = checkAuth();
+            if (!token) return;
+
+            try {
+                const response = await fetch('/api/admin/news', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const news = await response.json();
+                const newsListElement = document.getElementById('newsList');
+                newsListElement.innerHTML = news.map(item => `
+                    <div class="news-item">
+                        <h3>${item.title}</h3>
+                        <p>${item.content}</p>
+                        ${item.image_url ? `<img src="${item.image_url}" alt="新闻图片" style="max-width: 200px;">` : ''}
+                        <div class="news-meta">
+                            <span>发布时间: ${new Date(item.date).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载新闻列表失败:', error);
+                alert('加载新闻列表失败');
+            }
+        }
+
+        // 页面加载时检查认证并加载新闻列表
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadNewsList();
+        });
+
+        // 退出登录
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
+        });
+    </script>
+</body>
+</html> 
