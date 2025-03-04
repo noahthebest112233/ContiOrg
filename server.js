@@ -392,38 +392,22 @@ app.post('/api/subscribe', async (req, res) => {
             console.log('开始发送欢迎邮件...');
             const info = await transporter.sendMail({
                 from: {
-                    name: 'CONTI Technology Organization',
-                    address: process.env.EMAIL_USER
+                    name: 'CONTI News',
+                    address: process.env.EMAIL_USER || 'ContiTechOrg@gmail.com'
                 },
                 to: email,
-                subject: 'Welcome to CONTI News Subscription',
+                subject: '欢迎订阅 CONTI 新闻',
                 html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <h2 style="color: #333;">欢迎订阅 CONTI 新闻！</h2>
-                        <p style="color: #666; line-height: 1.6;">
-                            您好！感谢您订阅 CONTI 新闻。从现在开始，您将收到我们的最新动态和更新。
-                        </p>
-                        <p style="color: #666; line-height: 1.6;">
-                            如果您没有订阅我们的新闻，请忽略此邮件。
-                        </p>
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                            <p style="color: #999; font-size: 12px;">
-                                此邮件由系统自动发送，请勿直接回复。<br>
-                                如需取消订阅，请访问我们的网站。
-                            </p>
-                        </div>
-                    </div>
-                `,
-                headers: {
-                    'X-Priority': '1',
-                    'X-MSMail-Priority': 'High',
-                    'Importance': 'high'
-                }
+                    <h2>感谢您订阅 CONTI 新闻！</h2>
+                    <p>您将收到我们的最新动态和更新。</p>
+                    <p>如果想要取消订阅，请访问我们的网站。</p>
+                `
             });
             console.log('欢迎邮件发送成功:', info.response);
-            console.log('邮件ID:', info.messageId);
+            console.log('预览URL:', nodemailer.getTestMessageUrl(info));
         } catch (emailError) {
             console.error('发送欢迎邮件失败:', emailError);
+            // 继续执行，不影响订阅流程
         }
 
         res.json({ success: true, message: '订阅成功' });
